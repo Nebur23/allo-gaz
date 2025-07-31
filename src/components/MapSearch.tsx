@@ -6,8 +6,12 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface IconDefault extends L.Icon.Default {
+  _getIconUrl?: string;
+}
+
 // Fix Leaflet default icons
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as IconDefault)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -71,6 +75,21 @@ export default function MapSearch({ query }: { query: string }) {
     setLoading(true);
     setError(null);
 
+    const filterAndSortSellers = (userPos: [number, number]) => {
+      const filtered = mockSellers.filter(s =>
+        s.bottleType.toLowerCase().includes(query.toLowerCase())
+      );
+
+      const sorted = filtered.sort((a, b) => {
+        const distA = calculateDistance(userPos, [a.latitude, a.longitude]);
+        const distB = calculateDistance(userPos, [b.latitude, b.longitude]);
+        return distA - distB;
+      });
+
+      setSellers(sorted);
+      setLoading(false);
+    };
+
     // Get real user location
     if (!navigator.geolocation) {
       setError("Geolocation is not supported by your browser");
@@ -96,21 +115,6 @@ export default function MapSearch({ query }: { query: string }) {
       { timeout: 10000, enableHighAccuracy: true }
     );
   }, [query]);
-
-  const filterAndSortSellers = (userPos: [number, number]) => {
-    const filtered = mockSellers.filter(s =>
-      s.bottleType.toLowerCase().includes(query.toLowerCase())
-    );
-
-    const sorted = filtered.sort((a, b) => {
-      const distA = calculateDistance(userPos, [a.latitude, a.longitude]);
-      const distB = calculateDistance(userPos, [b.latitude, b.longitude]);
-      return distA - distB;
-    });
-
-    setSellers(sorted);
-    setLoading(false);
-  };
 
   const calculateDistance = (
     [lat1, lon1]: number[],
