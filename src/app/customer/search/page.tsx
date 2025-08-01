@@ -5,11 +5,14 @@ import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Star, Phone, Share2, Navigation, X, Loader2 } from "lucide-react";
+import { Star, Navigation, X, Loader2 } from "lucide-react";
 import { useSwipeable } from "react-swipeable";
 import { mockSellers, Seller } from "@/lib/sellers";
 import { SearchBar } from "@/components/SearchBar";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { SellerCardSkeleton } from "@/components/skeleton/seller";
+import { SellerCard } from "@/components/SellerCard";
+import { useFavorites } from "@/hooks/useFavorites";
 
 // Optimized dynamic import with better loading state
 const MapSearch = dynamic(() => import("@/components/MapSearch"), {
@@ -24,36 +27,16 @@ const MapSearch = dynamic(() => import("@/components/MapSearch"), {
   ),
 });
 
-// Loading skeleton component
-const SellerCardSkeleton = () => (
-  <Card className='overflow-hidden animate-pulse'>
-    <CardContent className='p-3'>
-      <div className='flex items-start justify-between'>
-        <div className='flex-1'>
-          <div className='h-4 bg-gray-200 rounded w-3/4 mb-2'></div>
-          <div className='h-3 bg-gray-200 rounded w-1/2 mb-2'></div>
-          <div className='flex items-center gap-2'>
-            <div className='h-3 w-3 bg-gray-200 rounded'></div>
-            <div className='h-3 bg-gray-200 rounded w-16'></div>
-          </div>
-        </div>
-        <div className='flex gap-1'>
-          <div className='h-8 w-8 bg-gray-200 rounded'></div>
-          <div className='h-8 w-8 bg-gray-200 rounded'></div>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
-
 export default function Home() {
   const [filters, setFilters] = useState({ brand: "", size: "" });
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
-  //const [routeCoords, setRouteCoords] = useState<[number, number][]>([]);
-  //const [isMapLoading, setIsMapLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"nearby" | "favorites">("nearby");
   const [listViewMode, setListViewMode] = useState<"half" | "full" | "minimal">(
     "half"
   );
+
+  const { favorites } = useFavorites();
+  const favoriteSellers = mockSellers.filter(s => favorites.includes(s.id));
 
   const {
     setState,
@@ -86,7 +69,7 @@ export default function Home() {
   }, [permissionState, requestPermission]);
 
   const renderLocationPermissionUI = () => {
-    if (!locationLoading) {
+    if (locationLoading) {
       return (
         <div className='absolute top-0 left-0 right-0 z-[100] bg-blue-50 border-b border-blue-200 p-3'>
           <div className='flex items-center justify-center gap-2 text-blue-700'>
@@ -117,7 +100,7 @@ export default function Home() {
 
     if (permissionState === "prompt") {
       return (
-        <div className='absolute top-0 left-0 right-0 z-50 bg-orange-50 border-b border-orange-200 p-3'>
+        <div className='absolute top-0 left-0 right-0 z-[100] bg-orange-50 border-b border-orange-200 p-3'>
           <div className='text-center'>
             <p className='text-sm text-orange-700 mb-2'>
               Allow location access to find gas sellers near you
@@ -223,7 +206,7 @@ export default function Home() {
       case "full":
         return "h-5/6";
       case "half":
-        return "h-2/5";
+        return "h-2/4";
       case "minimal":
         return "h-20";
       default:
@@ -268,7 +251,7 @@ export default function Home() {
           {selectedSeller && (
             <button
               onClick={resetView}
-              className='p-3 bg-red-500 text-white shadow-lg rounded-full hover:bg-red-600 hover:shadow-xl transition-all duration-200'
+              className='p-3 hidden bg-red-500 text-white shadow-lg rounded-full hover:bg-red-600 hover:shadow-xl transition-all duration-200'
             >
               <X className='h-4 w-4' />
             </button>
@@ -277,7 +260,7 @@ export default function Home() {
 
         {/* Route info overlay */}
         {selectedSeller && (
-          <div className='absolute top-1/4 md:w-1/2 mx-auto left-4 right-4 z-40'>
+          <div className='hidden absolute top-1/4 md:w-1/2 mx-auto left-4 right-4 z-40'>
             <Card className='bg-white/95 backdrop-blur-sm border-0 shadow-lg'>
               <CardContent className='p-3'>
                 <div className='flex items-center justify-between'>
@@ -320,129 +303,103 @@ export default function Home() {
             <div className='w-12 h-1.5 bg-gray-300 rounded-full transition-colors duration-200 hover:bg-gray-400'></div>
           </div>
 
-          {/* Header */}
           <div className='px-4 pb-2 border-b border-gray-100'>
-            <div className='flex items-center justify-between'>
-              <h2 className='text-lg font-semibold text-gray-800'>
-                Nearby Sellers ({filteredSellers.length})
-              </h2>
-              <div className='flex gap-1'>
-                <button
-                  onClick={() => setListViewMode("half")}
-                  className={`p-2 rounded-lg transition-colors ${
-                    listViewMode === "half"
-                      ? "bg-orange-100 text-orange-600"
-                      : "text-gray-400"
-                  }`}
-                >
-                  <div className='w-4 h-2 bg-current rounded'></div>
-                </button>
-                <button
-                  onClick={() => setListViewMode("full")}
-                  className={`p-2 rounded-lg transition-colors ${
-                    listViewMode === "full"
-                      ? "bg-orange-100 text-orange-600"
-                      : "text-gray-400"
-                  }`}
-                >
-                  <div className='w-4 h-4 bg-current rounded'></div>
-                </button>
-              </div>
+            <div className='flex space-x-1'>
+              <Button
+                variant={activeTab === "nearby" ? "default" : "outline"}
+                size='sm'
+                onClick={() => setActiveTab("nearby")}
+                className='rounded-full text-xs px-3'
+              >
+                Nearby
+              </Button>
+              <Button
+                variant={activeTab === "favorites" ? "default" : "outline"}
+                size='sm'
+                onClick={() => setActiveTab("favorites")}
+                className='rounded-full text-xs px-3'
+              >
+                Favorites ({favorites.length})
+              </Button>
             </div>
           </div>
 
-          {/* Scrollable List */}
-          <ScrollArea className='flex-1 px-4 h-full'>
-            <div className='space-y-3 py-4'>
-              {filteredSellers.length === 0
-                ? // Loading skeletons
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <SellerCardSkeleton key={i} />
-                  ))
-                : filteredSellers.map(seller => {
-                    const isSelected = selectedSeller?.id === seller.id;
-                    return (
-                      <Card
-                        key={seller.id}
-                        className={`overflow-hidden cursor-pointer transition-all duration-200 border-0 shadow-sm hover:shadow-md ${
-                          isSelected
-                            ? "ring-2 ring-orange-400 shadow-lg transform scale-[1.02]"
-                            : ""
-                        }`}
-                        onClick={() => {
-                          setSelectedSeller(seller);
-                        }}
-                      >
-                        <CardContent className='p-4'>
-                          <div className='flex items-start justify-between'>
-                            <div className='flex-1'>
-                              <div className='flex items-center gap-2 mb-1'>
-                                <h3 className='font-semibold text-gray-800 text-base'>
-                                  {seller.shopName}
-                                </h3>
-                                {isSelected && (
-                                  <span className='text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium'>
-                                    Selected
-                                  </span>
-                                )}
-                              </div>
-                              <p className='text-sm text-gray-600 mb-2'>
-                                {seller.brand} •{" "}
-                                <span className='font-semibold text-orange-600'>
-                                  {seller.price} XAF
-                                </span>
-                              </p>
-                              <div className='flex items-center'>
-                                <Star className='h-4 w-4 text-yellow-500 fill-yellow-500' />
-                                <span className='text-sm text-gray-600 ml-1'>
-                                  {seller.rating} ({seller.reviewCount} reviews)
-                                </span>
-                              </div>
-                            </div>
+          {activeTab === "nearby" && (
+            <>
+              <div className='px-4 pb-2 border-b border-gray-100'>
+                <div className='flex items-center justify-between'>
+                  <h2 className='text-lg font-semibold text-gray-800'>
+                    Nearby Sellers ({filteredSellers.length})
+                  </h2>
+                  <div className='flex gap-1'>
+                    <button
+                      onClick={() => setListViewMode("half")}
+                      className={`p-2 rounded-lg transition-colors ${
+                        listViewMode === "half"
+                          ? "bg-orange-100 text-orange-600"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      <div className='w-4 h-2 bg-current rounded'></div>
+                    </button>
+                    <button
+                      onClick={() => setListViewMode("full")}
+                      className={`p-2 rounded-lg transition-colors ${
+                        listViewMode === "full"
+                          ? "bg-orange-100 text-orange-600"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      <div className='w-4 h-4 bg-current rounded'></div>
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-                            <div className='flex gap-2'>
-                              <Button
-                                size='sm'
-                                variant='outline'
-                                className='h-9 w-9 p-0 border-gray-200 hover:border-green-400 hover:bg-green-50 transition-all duration-200'
-                                asChild
-                              >
-                                <a
-                                  href={`tel:${seller.phone}`}
-                                  aria-label='Call seller'
-                                >
-                                  <Phone className='h-4 w-4 text-green-600' />
-                                </a>
-                              </Button>
-                              <Button
-                                size='sm'
-                                variant='outline'
-                                className='h-9 w-9 p-0 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200'
-                                asChild
-                              >
-                                <a
-                                  href={`https://wa.me/?text=Gas%20at%20${encodeURIComponent(
-                                    seller.shopName
-                                  )}:%20${
-                                    seller.price
-                                  }XAF%0Ahttps://maps.google.com/?q=${
-                                    seller.latitude
-                                  },${seller.longitude}`}
-                                  target='_blank'
-                                  rel='noopener noreferrer'
-                                  aria-label='Share on WhatsApp'
-                                >
-                                  <Share2 className='h-4 w-4 text-blue-600' />
-                                </a>
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+              <ScrollArea className='flex-1 px-4 h-full'>
+                <div className='space-y-3 py-4'>
+                  {filteredSellers.length === 0
+                    ? // Loading skeletons
+                      Array.from({ length: 3 }).map((_, i) => (
+                        <SellerCardSkeleton key={i} />
+                      ))
+                    : filteredSellers.map(seller => {
+                        const isSelected = selectedSeller?.id === seller.id;
+                        return (
+                          <SellerCard
+                            key={seller.id}
+                            seller={seller}
+                            isSelected={isSelected}
+                            userLocation={userLocation as [number, number]}
+                            onClick={() => setSelectedSeller(seller)}
+                          />
+                        );
+                      })}
+                </div>
+              </ScrollArea>
+            </>
+          )}
+
+          {activeTab === "favorites" && (
+            <div className='space-y-3 py-4'>
+              {favoriteSellers.length === 0 ? (
+                <p className='text-center text-gray-500 text-sm p-4'>
+                  No favorites yet
+                </p>
+              ) : (
+                favoriteSellers.map(seller => (
+                  <SellerCard
+                    key={seller.id}
+                    seller={seller}
+                    /* props */ isSelected={false}
+                    onClick={function (): void {
+                      throw new Error("Function not implemented.");
+                    }} /* props */
+                  />
+                ))
+              )}
             </div>
-          </ScrollArea>
+          )}
         </div>
       )}
     </div>

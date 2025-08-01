@@ -618,7 +618,7 @@ export default function MapSearch({
 
       {/* Route info card */}
       {routeInfo && !routeLoading && (
-        <div className='absolute top-1/4 md:top-4 left-1/2 transform -translate-x-1/2 z-40 bg-white/95 backdrop-blur-sm shadow-lg px-4 py-3 rounded-xl border border-gray-100'>
+        <div className='absolute top-1/4  left-1/2 transform -translate-x-1/2 z-40 bg-white/95 backdrop-blur-sm shadow-lg px-4 py-3 rounded-xl border border-gray-100'>
           <div className='flex items-center gap-4 text-sm'>
             <div className='flex items-center gap-1 text-blue-600'>
               <Route className='h-4 w-4' />

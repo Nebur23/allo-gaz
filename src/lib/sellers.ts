@@ -3,13 +3,24 @@ export type Seller = {
   shopName: string;
   latitude: number;
   longitude: number;
-  brand: "SCTM" | "BOCOM" | "OILYBIA" | "CAMGAZ" | "TOTAL" | "TRADEX";
+  brand: "SCTM" | "BOCOM" | "OILIBYA" | "CAMGAZ" | "TOTAL" | "TRADEX";
   size: "small" | "big";
   price: number;
   phone: string;
   rating: number;
   reviewCount: number;
+  image?: string;
+  address?: string;
+  openHours?: {
+    open: string; // "08:00"
+    close: string; // "18:00"
+  };
+  verified?: boolean;
+  deliveryTime?: number; // minutes
+  discount?: number; // percentage
 };
+
+
 
 export const mockSellers: Seller[] = [
   {
@@ -23,6 +34,12 @@ export const mockSellers: Seller[] = [
     phone: "+237650123456",
     rating: 4.7,
     reviewCount: 120,
+    image: "/sctm.png",
+    address: "Melen, Yaoundé",
+    openHours: { open: "08:00", close: "18:00" },
+    verified: true,
+    deliveryTime: 30,
+    discount: 5
   },
   {
     id: "2",
@@ -35,6 +52,12 @@ export const mockSellers: Seller[] = [
     phone: "+237658001122",
     rating: 4.6,
     reviewCount: 98,
+    image: "/bocom.png",
+    address: "Bonamoussadi, Douala",
+    openHours: { open: "07:30", close: "18:30" },
+    verified: true,
+    deliveryTime: 45,
+    discount: 10
   },
   {
     id: "3",
@@ -47,18 +70,30 @@ export const mockSellers: Seller[] = [
     phone: "+237655998877",
     rating: 4.8,
     reviewCount: 135,
+    image: "/total.png",
+    address: "Omnisport Stadium, Yaoundé",
+    openHours: { open: "08:00", close: "18:00" },
+    verified: true,
+    deliveryTime: 25,
+    discount: 50
   },
   {
     id: "4",
     shopName: "OILYBIA Carrefour Ndokoti",
     latitude: 4.056,
     longitude: 9.768,
-    brand: "OILYBIA",
+    brand: "OILIBYA",
     size: "big",
     price: 6500,
     phone: "+237674221899",
     rating: 4.4,
     reviewCount: 87,
+    image: "/oilibya.png",
+    address: "Carrefour Ndokoti, Douala",
+    openHours: { open: "07:00", close: "19:00" },
+    verified: false,
+    deliveryTime: 60,
+    discount: 15
   },
   {
     id: "5",
@@ -71,6 +106,12 @@ export const mockSellers: Seller[] = [
     phone: "+237673331100",
     rating: 4.3,
     reviewCount: 63,
+    image: "/camgaz.png",
+    address: "Makepe, Douala",
+    openHours: { open: "08:00", close: "17:30" },
+    verified: true,
+    deliveryTime: 40,
+    discount: 5
   },
   {
     id: "6",
@@ -83,6 +124,12 @@ export const mockSellers: Seller[] = [
     phone: "+237656789012",
     rating: 4.5,
     reviewCount: 110,
+    image: "/tradex.png",
+    address: "Akwa, Douala",
+    openHours: { open: "07:30", close: "18:30" },
+    verified: true,
+    deliveryTime: 35,
+    discount: 8
   },
   {
     id: "7",
@@ -95,6 +142,12 @@ export const mockSellers: Seller[] = [
     phone: "+237653456789",
     rating: 4.6,
     reviewCount: 70,
+    image: "/total.png",
+    address: "Molyko, Buea",
+    openHours: { open: "08:00", close: "17:30" },
+    verified: false,
+    deliveryTime: 45,
+    discount: 0
   },
   {
     id: "8",
@@ -107,6 +160,12 @@ export const mockSellers: Seller[] = [
     phone: "+237659887711",
     rating: 4.2,
     reviewCount: 55,
+    image: "/sctm.png",
+    address: "Sandaga Market, Douala",
+    openHours: { open: "07:00", close: "18:00" },
+    verified: false,
+    deliveryTime: 50,
+    discount: 12
   },
   {
     id: "9",
@@ -119,6 +178,12 @@ export const mockSellers: Seller[] = [
     phone: "+237670112233",
     rating: 4.7,
     reviewCount: 80,
+    image: "/bocom.png",
+    address: "Carrefour Bastos, Yaoundé",
+    openHours: { open: "08:00", close: "17:30" },
+    verified: true,
+    deliveryTime: 30,
+    discount: 5
   },
   {
     id: "10",
@@ -131,18 +196,30 @@ export const mockSellers: Seller[] = [
     phone: "+237676543210",
     rating: 4.3,
     reviewCount: 68,
+    image: "/camgaz.png",
+    address: "Essos, Yaoundé",
+    openHours: { open: "08:00", close: "18:00" },
+    verified: true,
+    deliveryTime: 40,
+    discount: 7
   },
   {
     id: "11",
     shopName: "OILYBIA Buea Town",
     latitude: 4.17,
     longitude: 9.305,
-    brand: "OILYBIA",
+    brand: "OILIBYA",
     size: "small",
     price: 3500,
     phone: "+237690011223",
     rating: 4.1,
     reviewCount: 59,
+    image: "/oilibya.png",
+    address: "Buea Town, Buea",
+    openHours: { open: "07:30", close: "17:30" },
+    verified: false,
+    deliveryTime: 55,
+    discount: 10
   },
   {
     id: "12",
@@ -155,6 +232,12 @@ export const mockSellers: Seller[] = [
     phone: "+237677009988",
     rating: 4.0,
     reviewCount: 61,
+    image: "/tradex.png",
+    address: "New Bell, Douala",
+    openHours: { open: "07:00", close: "18:30" },
+    verified: false,
+    deliveryTime: 45,
+    discount: 15
   },
   {
     id: "13",
@@ -167,6 +250,12 @@ export const mockSellers: Seller[] = [
     phone: "+237699887766",
     rating: 4.2,
     reviewCount: 76,
+    image: "/bocom.png",
+    address: "Mboppi Market, Douala",
+    openHours: { open: "08:00", close: "17:30" },
+    verified: false,
+    deliveryTime: 35,
+    discount: 8
   },
   {
     id: "14",
@@ -179,6 +268,12 @@ export const mockSellers: Seller[] = [
     phone: "+237690012345",
     rating: 4.4,
     reviewCount: 92,
+    image: "/sctm.png",
+    address: "Muea, Buea",
+    openHours: { open: "07:30", close: "18:00" },
+    verified: false,
+    deliveryTime: 50,
+    discount: 12
   },
   {
     id: "15",
@@ -191,6 +286,12 @@ export const mockSellers: Seller[] = [
     phone: "+237650998877",
     rating: 4.3,
     reviewCount: 78,
+    image: "/total.png",
+    address: "Ndogbong, Douala",
+    openHours: { open: "08:00", close: "18:00" },
+    verified: true,
+    deliveryTime: 30,
+    discount: 0
   },
   {
     id: "16",
@@ -203,6 +304,12 @@ export const mockSellers: Seller[] = [
     phone: "+237699007744",
     rating: 4.2,
     reviewCount: 65,
+    image: "/camgaz.png",
+    address: "Etoug-Ebe, Yaoundé",
+    openHours: { open: "08:00", close: "17:30" },
+    verified: true,
+    deliveryTime: 45,
+    discount: 10
   },
   {
     id: "17",
@@ -215,6 +322,12 @@ export const mockSellers: Seller[] = [
     phone: "+237652887766",
     rating: 4.1,
     reviewCount: 44,
+    image: "/bocom.png",
+    address: "PK10, Douala",
+    openHours: { open: "08:00", close: "17:00" },
+    verified: false,
+    deliveryTime: 60,
+    discount: 5
   },
   {
     id: "18",
@@ -227,18 +340,30 @@ export const mockSellers: Seller[] = [
     phone: "+237674112200",
     rating: 4.5,
     reviewCount: 69,
+    image: "/tradex.png",
+    address: "Elig-Edzoa, Yaoundé",
+    openHours: { open: "07:30", close: "18:00" },
+    verified: true,
+    deliveryTime: 35,
+    discount: 8
   },
   {
     id: "19",
     shopName: "OILYBIA Carrefour Obili",
     latitude: 3.879,
     longitude: 11.492,
-    brand: "OILYBIA",
+    brand: "OILIBYA",
     size: "small",
     price: 3500,
     phone: "+237698776655",
     rating: 4.0,
     reviewCount: 50,
+    image: "/oilibya.png",
+    address: "Carrefour Obili, Yaoundé",
+    openHours: { open: "08:00", close: "17:30" },
+    verified: false,
+    deliveryTime: 40,
+    discount: 15
   },
   {
     id: "20",
@@ -247,9 +372,15 @@ export const mockSellers: Seller[] = [
     longitude: 11.47,
     brand: "SCTM",
     size: "big",
-    price: 65000,
+    price: 6500,
     phone: "+237677665544",
     rating: 4.3,
     reviewCount: 73,
+    image: "/sctm.png",
+    address: "Mendong, Yaoundé",
+    openHours: { open: "07:30", close: "18:00" },
+    verified: true,
+    deliveryTime: 45,
+    discount: 10
   },
 ];
