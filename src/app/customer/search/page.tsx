@@ -1,23 +1,15 @@
 "use client";
 
-import { useState, useCallback, useMemo, Suspense } from "react";
+import { useState, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Star,
-  Phone,
-  Share2,
-  Car,
-  MapPin,
-  Navigation,
-  X,
-  Loader2,
-  RefreshCw,
-} from "lucide-react";
+import { Star, Phone, Share2, Navigation, X, Loader2 } from "lucide-react";
 import { useSwipeable } from "react-swipeable";
-import { mockSellers } from "@/lib/sellers";
+import { mockSellers, Seller } from "@/lib/sellers";
+import { SearchBar } from "@/components/SearchBar";
+import { useGeolocation } from "@/hooks/useGeolocation";
 
 // Optimized dynamic import with better loading state
 const MapSearch = dynamic(() => import("@/components/MapSearch"), {
@@ -31,18 +23,6 @@ const MapSearch = dynamic(() => import("@/components/MapSearch"), {
     </div>
   ),
 });
-
-type Seller = {
-  id: string;
-  shopName: string;
-  latitude: number;
-  longitude: number;
-  bottleType: string;
-  price: number;
-  phone: string;
-  rating: number;
-  reviewCount: number;
-};
 
 // Loading skeleton component
 const SellerCardSkeleton = () => (
@@ -67,27 +47,62 @@ const SellerCardSkeleton = () => (
 );
 
 export default function Home() {
-  const [query, setQuery] = useState("6kg");
-  const [bottleType, setBottleType] = useState("6kg");
+  const [filters, setFilters] = useState({ brand: "", size: "" });
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
-  const [routeCoords, setRouteCoords] = useState<[number, number][]>([]);
-  const [isMapLoading, setIsMapLoading] = useState(false);
+  //const [routeCoords, setRouteCoords] = useState<[number, number][]>([]);
+  //const [isMapLoading, setIsMapLoading] = useState(false);
   const [listViewMode, setListViewMode] = useState<"half" | "full" | "minimal">(
     "half"
   );
 
+  const location = useGeolocation().location as [number, number] | null;
+
+  const deg2rad = useCallback((deg: number) => deg * (Math.PI / 180), []);
+
+  // Optimized distance calculation
+  const calculateDistance = useCallback(
+    ([lat1, lon1]: number[], [lat2, lon2]: number[]): number => {
+      const R = 6371;
+      const dLat = deg2rad(lat2 - lat1);
+      const dLon = deg2rad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) *
+          Math.cos(deg2rad(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    },
+    [deg2rad]
+  );
+
   // Memoized filtered sellers for better performance
+
   const filteredSellers = useMemo(() => {
-    return mockSellers.filter(s =>
-      s.bottleType.toLowerCase().includes(query.toLowerCase())
-    );
-  }, [query]);
+    if (!location) return [];
+    return mockSellers
+      .filter(
+        seller =>
+          seller.brand.toLowerCase().includes(filters.brand.toLowerCase()) &&
+          seller.size.toLowerCase().includes(filters.size.toLowerCase())
+      )
+      .map(seller => ({
+        ...seller,
+        distance: calculateDistance(location as [number, number], [
+          seller.latitude,
+          seller.longitude,
+        ]),
+      }))
+      .sort((a, b) => a.distance - b.distance);
+  }, [filters, calculateDistance, location]);
 
   // Handle seller selection from map with useCallback for performance
   const handleSellerSelect = useCallback(
-    (seller: Seller, coords: [number, number][]) => {
+    (seller: Seller, routeCoords: [number, number][]) => {
       setSelectedSeller(seller);
-      setRouteCoords(coords);
+      //setRouteCoords(routeCoords);
+      console.log("Selected routeCoords:", routeCoords);
       if (listViewMode === "minimal") {
         setListViewMode("half");
       }
@@ -95,21 +110,26 @@ export default function Home() {
     [listViewMode]
   );
 
-  const handleSearch = useCallback(() => {
-    setIsMapLoading(true);
-    setQuery(bottleType);
+  const handleSearch = useCallback((brand: string, size: string) => {
+    setFilters({ brand, size });
+    //setIsMapLoading(true);
     setSelectedSeller(null);
-    setRouteCoords([]);
+    //setRouteCoords([]);
     // Simulate loading time - in real app this would be handled by map component
-    setTimeout(() => setIsMapLoading(false), 500);
-  }, [bottleType]);
+    //setTimeout(() => setIsMapLoading(false), 500);
+  }, []);
 
   const resetView = useCallback(() => {
     setSelectedSeller(null);
-    setRouteCoords([]);
-    setListViewMode("half");
-    setQuery(bottleType);
-  }, [bottleType]);
+    //setRouteCoords([]);
+    setFilters({ brand: "", size: "" });
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setFilters({ brand: "", size: "" });
+    setSelectedSeller(null);
+    //setRouteCoords([]);
+  }, []);
 
   // Optimized swipe handlers
   const handlers = useSwipeable({
@@ -142,98 +162,11 @@ export default function Home() {
 
   return (
     <div className='flex flex-col h-screen bg-gray-50 overflow-hidden'>
-      {/* Enhanced Header with gradient */}
-      <header className='bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 shadow-lg sticky top-0 z-50 backdrop-blur-sm'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center space-x-3'>
-            <div className='w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm'>
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                width='20'
-                height='20'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                className='text-white'
-              >
-                <path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'></path>
-                <polyline points='9 22 9 12 15 12 15 22'></polyline>
-              </svg>
-            </div>
-            <div>
-              <h1 className='text-lg font-bold'>AlloGaz</h1>
-              <p className='text-xs opacity-90'>Gas delivered in minutes</p>
-            </div>
-          </div>
+      <SearchBar onSearch={handleSearch} onReset={handleReset} />
 
-          {/* Reset button */}
-          {(selectedSeller || routeCoords.length > 0) && (
-            <Button
-              onClick={resetView}
-              size='sm'
-              variant='ghost'
-              className='text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200'
-            >
-              <RefreshCw className='h-4 w-4 mr-1' />
-              Reset
-            </Button>
-          )}
-        </div>
-      </header>
-
-      {/* Enhanced Search Bar with better styling */}
-      <div className='p-4 bg-white border-b border-gray-100 shadow-sm'>
-        <div className='flex gap-3 items-center'>
-          <div className='flex-1 relative'>
-            <select
-              value={bottleType}
-              onChange={e => setBottleType(e.target.value)}
-              className='w-full p-3 pl-10 border border-gray-200 rounded-2xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent appearance-none shadow-sm transition-all duration-200'
-            >
-              <option value='6kg'>6kg Gas Bottle</option>
-              <option value='12kg'>12kg Gas Bottle</option>
-              <option value='50kg'>50kg Gas Bottle</option>
-            </select>
-            <MapPin className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
-          </div>
-          <Button
-            onClick={handleSearch}
-            disabled={isMapLoading}
-            className='bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all duration-200 px-6 rounded-2xl'
-          >
-            {isMapLoading ? (
-              <Loader2 className='h-5 w-5 animate-spin' />
-            ) : (
-              <Car className='h-5 w-5' />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Enhanced Map Container */}
       <div className='flex-1 relative overflow-hidden'>
-        <Suspense
-          fallback={
-            <div className='h-full bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center'>
-              <div className='text-center'>
-                <Loader2 className='h-8 w-8 animate-spin text-orange-500 mx-auto mb-2' />
-                <p className='text-sm text-gray-600'>Loading map...</p>
-              </div>
-            </div>
-          }
-        >
-          <MapSearch
-            query={query}
-            onSellerSelect={handleSellerSelect}
-            onTry6kg={() => {
-              setBottleType("6kg");
-              setQuery("6kg");
-            }}
-          />
-        </Suspense>
+        <MapSearch filters={filters} onSellerSelect={handleSellerSelect} />
 
-        {/* Enhanced Toggle List Button */}
         <div className='absolute bottom-6 left-1/2 transform -translate-x-1/2 z-40 flex gap-2'>
           <button
             onClick={() =>
@@ -266,7 +199,8 @@ export default function Home() {
                       {selectedSeller.shopName}
                     </h3>
                     <p className='text-sm text-orange-600'>
-                      {selectedSeller.price} XAF • {selectedSeller.bottleType}
+                      {selectedSeller.price} XAF • {selectedSeller.brand} •
+                      {selectedSeller.size === "small" ? "6kg" : "12kg"}
                     </p>
                   </div>
                   <div className='flex items-center gap-2'>
@@ -331,7 +265,7 @@ export default function Home() {
           </div>
 
           {/* Scrollable List */}
-          <ScrollArea className='flex-1 px-4'>
+          <ScrollArea className='flex-1 px-4 h-full'>
             <div className='space-y-3 py-4'>
               {filteredSellers.length === 0
                 ? // Loading skeletons
@@ -366,7 +300,7 @@ export default function Home() {
                                 )}
                               </div>
                               <p className='text-sm text-gray-600 mb-2'>
-                                {seller.bottleType} •{" "}
+                                {seller.brand} •{" "}
                                 <span className='font-semibold text-orange-600'>
                                   {seller.price} XAF
                                 </span>

@@ -17,7 +17,6 @@ import polyline from "@mapbox/polyline";
 import {
   X,
   Navigation,
-  MapPin,
   Clock,
   Route,
   Loader2,
@@ -26,6 +25,8 @@ import {
   Star,
 } from "lucide-react";
 import { mockSellers, Seller } from "@/lib/sellers";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { toast } from "sonner";
 
 interface IconDefault extends L.Icon.Default {
   _getIconUrl?: () => string;
@@ -72,9 +73,8 @@ class RouteCache {
 const routeCache = new RouteCache();
 
 type MapSearchProps = {
-  query: string;
   onSellerSelect?: (seller: Seller, routeCoords: [number, number][]) => void;
-  onTry6kg?: () => void;
+  filters: { brand: string; size: string };
 };
 
 // Map controller component for programmatic control
@@ -126,18 +126,11 @@ function MapController({
   return null;
 }
 
-export default function MapSearch({
-  query,
-  onSellerSelect,
-  onTry6kg,
-}: MapSearchProps) {
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(
-    null
-  );
+export default function MapSearch({ filters, onSellerSelect }: MapSearchProps) {
+  console.log(`filter search ${filters.brand} ${filters.size} `);
+
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [loading, setLoading] = useState(true);
-  const [locationLoading, setLocationLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
   const [routeCoords, setRouteCoords] = useState<[number, number][]>([]);
   const [routeInfo, setRouteInfo] = useState<{
@@ -147,6 +140,17 @@ export default function MapSearch({
   const [routeLoading, setRouteLoading] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const {
+    loading: locationLoading,
+    location: userLocation,
+    error,
+    setState,
+  } = useGeolocation({
+    enableHighAccuracy: true,
+    timeout: 15000, // 15 seconds
+    maximumAge: 300000, // 5 minutes
+  });
 
   // Memoized custom icons
   const icons = useMemo(
@@ -241,7 +245,7 @@ export default function MapSearch({
 
       abortControllerRef.current = new AbortController();
       setRouteLoading(true);
-      setError(null);
+      setState({ error: null });
 
       try {
         const res = await axios.post(
@@ -285,76 +289,25 @@ export default function MapSearch({
         if (axios.isCancel(err)) return; // Ignore cancelled requests
 
         console.error("Route fetch error:", err);
-        setError("Failed to load route. Please try again.");
+        setState({ error: "Failed to load route. Please try again." });
+
         setRouteCoords([]);
         setRouteInfo(null);
       } finally {
         setRouteLoading(false);
       }
     },
-    [onSellerSelect, selectedSeller]
+    [onSellerSelect, selectedSeller, setState]
   );
-
-  // Get user location with better error handling and timeout
-  const getUserLocation = useCallback(() => {
-    setLocationLoading(true);
-    setError(null);
-
-    if (!navigator.geolocation) {
-      setError("Geolocation not supported by this browser");
-      const fallback: [number, number] = [3.848, 11.502]; // Yaoundé
-      setUserLocation(fallback);
-      setLocationLoading(false);
-      return;
-    }
-
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 15000, // 15 seconds
-      maximumAge: 300000, // 5 minutes
-    };
-
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const { latitude, longitude } = position.coords;
-        const loc: [number, number] = [latitude, longitude];
-        setUserLocation(loc);
-        setLocationLoading(false);
-        setError(null);
-      },
-      err => {
-        console.warn("Geolocation error:", err);
-        let errorMessage = "Failed to get your location";
-
-        switch (err.code) {
-          case err.PERMISSION_DENIED:
-            errorMessage =
-              "Location access denied. Please enable location services.";
-            break;
-          case err.POSITION_UNAVAILABLE:
-            errorMessage = "Location information unavailable.";
-            break;
-          case err.TIMEOUT:
-            errorMessage = "Location request timed out.";
-            break;
-        }
-
-        setError(errorMessage);
-        // Use fallback location (Yaoundé, Cameroon)
-        const fallback: [number, number] = [3.848, 11.502];
-        setUserLocation(fallback);
-        setLocationLoading(false);
-      },
-      options
-    );
-  }, []);
 
   // Filter and sort sellers with memoization
   const filteredAndSortedSellers = useMemo(() => {
     if (!userLocation) return [];
 
-    const filtered = mockSellers.filter(s =>
-      s.bottleType.toLowerCase().includes(query.toLowerCase())
+    const filtered = mockSellers.filter(
+      seller =>
+        seller.brand.toLowerCase().includes(filters.brand.toLowerCase()) &&
+        seller.size.toLowerCase().includes(filters.size.toLowerCase())
     );
 
     return filtered.sort((a, b) => {
@@ -362,7 +315,7 @@ export default function MapSearch({
       const distB = calculateDistance(userLocation, [b.latitude, b.longitude]);
       return distA - distB;
     });
-  }, [query, userLocation, calculateDistance]);
+  }, [filters, userLocation, calculateDistance]);
 
   // Handle seller click with debouncing
   const handleSellerClick = useCallback(
@@ -389,10 +342,6 @@ export default function MapSearch({
   }, []);
 
   // Initial load effect
-  useEffect(() => {
-    setLoading(true);
-    getUserLocation();
-  }, [getUserLocation]);
 
   // Update sellers when query or location changes
   useEffect(() => {
@@ -444,17 +393,11 @@ export default function MapSearch({
           </h3>
           <p className='text-sm text-gray-600 mb-4 leading-relaxed'>
             We couldn&apos;t find any{" "}
-            <span className='font-semibold text-orange-600'>{query}</span> gas
-            bottles in your area right now.
+            <span className='font-semibold text-orange-600'>
+              {filters.size} {filters.brand}
+            </span>{" "}
+            gas bottles in your area right now.
           </p>
-          <Button
-            variant='outline'
-            className='bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0 hover:from-orange-600 hover:to-orange-700 shadow-md hover:shadow-lg transition-all duration-200'
-            onClick={onTry6kg}
-          >
-            <MapPin className='h-4 w-4 mr-2' />
-            Try 6kg Bottles
-          </Button>
         </div>
       </div>
     );
@@ -513,7 +456,7 @@ export default function MapSearch({
         zoom={13}
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={true}
-        className='z-10 rounded-t-3xl'
+        className='z-10'
         zoomControl={false}
         attributionControl={false}
       >
@@ -536,7 +479,9 @@ export default function MapSearch({
               <div className='text-center p-2'>
                 <div className='text-blue-600 mb-2'>📍</div>
                 <p className='font-semibold text-gray-800'>Your Location</p>
-                <p className='text-xs text-gray-600'>We&apos;ll deliver gas here</p>
+                <p className='text-xs text-gray-600'>
+                  We&apos;ll deliver gas here
+                </p>
               </div>
             </Popup>
           </Marker>
@@ -570,7 +515,7 @@ export default function MapSearch({
                     </h3>
                     <div className='flex items-center justify-center gap-2 text-sm'>
                       <span className='bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium'>
-                        {seller.bottleType}
+                        {seller.brand}
                       </span>
                       <span className='font-bold text-green-600'>
                         {seller.price} XAF
@@ -677,26 +622,11 @@ export default function MapSearch({
       {/* Floating UI Elements */}
 
       {/* Error notification */}
-      {error && (
-        <div className='absolute top-4 left-4 right-4 z-50 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl shadow-lg backdrop-blur-sm'>
-          <div className='flex items-center gap-2'>
-            <div className='text-red-500'>⚠️</div>
-            <p className='text-sm font-medium'>{error}</p>
-            <Button
-              size='sm'
-              variant='ghost'
-              onClick={() => setError(null)}
-              className='ml-auto h-6 w-6 p-0'
-            >
-              <X className='h-4 w-4' />
-            </Button>
-          </div>
-        </div>
-      )}
+      {error && toast.error(error)}
 
       {/* Route info card */}
       {routeInfo && !routeLoading && (
-        <div className='absolute top-4 left-1/2 transform -translate-x-1/2 z-40 bg-white/95 backdrop-blur-sm shadow-lg px-4 py-3 rounded-xl border border-gray-100'>
+        <div className='absolute top-1/4 md:top-4 left-1/2 transform -translate-x-1/2 z-40 bg-white/95 backdrop-blur-sm shadow-lg px-4 py-3 rounded-xl border border-gray-100'>
           <div className='flex items-center gap-4 text-sm'>
             <div className='flex items-center gap-1 text-blue-600'>
               <Route className='h-4 w-4' />
@@ -728,7 +658,7 @@ export default function MapSearch({
       {(routeCoords.length > 0 || selectedSeller) && (
         <button
           onClick={clearRoute}
-          className='absolute top-4 right-4 z-40 p-3 bg-white shadow-lg rounded-full hover:shadow-xl transition-all duration-200 border border-gray-100'
+          className='absolute top-1/4 md:top-4 right-4 z-40 p-3 bg-white shadow-lg rounded-full hover:shadow-xl transition-all duration-200 border border-gray-100'
           aria-label='Clear route and selection'
         >
           <X className='h-5 w-5 text-gray-600' />

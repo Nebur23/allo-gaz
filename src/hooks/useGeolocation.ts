@@ -1,8 +1,7 @@
 "use client";
-
 import { useState, useEffect, useCallback, useRef } from "react";
 
-interface GeolocationState {
+export interface GeolocationState {
   location: [number, number] | null;
   loading: boolean;
   error: string | null;
@@ -20,9 +19,19 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
   const {
     enableHighAccuracy = true,
     timeout = 15000,
-    maximumAge = 300000, // 5 minutes
-    fallbackLocation = [3.848, 11.502], // Yaoundé, Cameroon
+    maximumAge = 300000,
+    fallbackLocation = [3.848, 11.502],
   } = options;
+
+  const geoOptions = useRef({
+    enableHighAccuracy,
+    timeout,
+    maximumAge,
+  });
+
+  // Store fallbackLocation in a ref to avoid recreating callbacks
+  const fallbackLocationRef = useRef(fallbackLocation);
+  fallbackLocationRef.current = fallbackLocation;
 
   const [state, setState] = useState<GeolocationState>({
     location: null,
@@ -38,19 +47,13 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
 
     if (!navigator.geolocation) {
       setState({
-        location: fallbackLocation,
+        location: fallbackLocationRef.current,
         loading: false,
-        error: "Geolocation not supported",
+        error: "Geolocation not supported by this browser",
         accuracy: null,
       });
       return;
     }
-
-    const geoOptions = {
-      enableHighAccuracy,
-      timeout,
-      maximumAge,
-    };
 
     navigator.geolocation.getCurrentPosition(
       position => {
@@ -63,39 +66,32 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
         });
       },
       error => {
-        let errorMessage = "Failed to get location";
-
+        let errorMessage = "Failed to get your location";
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = "Location access denied";
+            errorMessage =
+              "Location access denied. Please enable location services.";
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = "Location unavailable";
+            errorMessage = "Location information unavailable.";
             break;
           case error.TIMEOUT:
             errorMessage = "Location request timed out";
             break;
         }
-
         setState({
-          location: fallbackLocation,
+          location: fallbackLocationRef.current,
           loading: false,
           error: errorMessage,
           accuracy: null,
         });
       },
-      geoOptions
+      geoOptions.current
     );
-  }, [enableHighAccuracy, timeout, maximumAge, fallbackLocation]);
+  }, []); // No dependencies needed now
 
   const watchLocation = useCallback(() => {
     if (!navigator.geolocation || watchIdRef.current !== null) return;
-
-    const geoOptions = {
-      enableHighAccuracy,
-      timeout,
-      maximumAge,
-    };
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       position => {
@@ -110,9 +106,9 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
       error => {
         console.warn("Watch position error:", error);
       },
-      geoOptions
+      geoOptions.current
     );
-  }, [enableHighAccuracy, timeout, maximumAge]);
+  }, []);
 
   const clearWatch = useCallback(() => {
     if (watchIdRef.current !== null) {
@@ -124,13 +120,15 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
   useEffect(() => {
     getCurrentLocation();
     return () => clearWatch();
-  }, [getCurrentLocation, clearWatch]);
+  }, [getCurrentLocation, clearWatch]); // Include all dependencies
 
   return {
     ...state,
     refetch: getCurrentLocation,
     watchLocation,
     clearWatch,
+    setState: (newState: Partial<GeolocationState>) => {
+      setState(prev => ({ ...prev, ...newState }));
+    },
   };
 }
-
