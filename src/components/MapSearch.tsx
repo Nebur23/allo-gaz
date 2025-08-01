@@ -25,7 +25,7 @@ import {
   Star,
 } from "lucide-react";
 import { mockSellers, Seller } from "@/lib/sellers";
-import { useGeolocation } from "@/hooks/useGeolocation";
+import { GeolocationState } from "@/hooks/useGeolocation";
 import { toast } from "sonner";
 
 interface IconDefault extends L.Icon.Default {
@@ -75,6 +75,9 @@ const routeCache = new RouteCache();
 type MapSearchProps = {
   onSellerSelect?: (seller: Seller, routeCoords: [number, number][]) => void;
   filters: { brand: string; size: string };
+  userLocation: [number, number];
+  setState: (newState: Partial<GeolocationState>) => void;
+  error: string | null;
 };
 
 // Map controller component for programmatic control
@@ -126,9 +129,13 @@ function MapController({
   return null;
 }
 
-export default function MapSearch({ filters, onSellerSelect }: MapSearchProps) {
-  console.log(`filter search ${filters.brand} ${filters.size} `);
-
+export default function MapSearch({
+  filters,
+  onSellerSelect,
+  userLocation,
+  setState,
+  error,
+}: MapSearchProps) {
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
@@ -140,20 +147,6 @@ export default function MapSearch({ filters, onSellerSelect }: MapSearchProps) {
   const [routeLoading, setRouteLoading] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  const {
-    loading: locationLoading,
-    location: userLocation,
-    error,
-    permissionState,
-    requestPermission,
-    setState,
-  } = useGeolocation({
-    enableHighAccuracy: true,
-    timeout: 30000, // Increased for mobile
-    maximumAge: 300000,
-    requestPermissionOnMount: true, // Auto-request in map component
-  });
 
   // Memoized custom icons
   const icons = useMemo(
@@ -380,83 +373,9 @@ export default function MapSearch({ filters, onSellerSelect }: MapSearchProps) {
   // Render loading state
 
   // Render loading state with better mobile support
-  if (loading || locationLoading || !userLocation) {
-    // Handle permission states
-    if (permissionState === "denied") {
-      return (
-        <div className='h-full bg-gradient-to-br from-red-50 via-white to-orange-50 flex flex-col items-center justify-center p-6'>
-          <div className='text-center space-y-4 max-w-sm'>
-            <div className='text-6xl mb-4'>📍</div>
-            <h3 className='text-lg font-semibold text-gray-700 mb-2'>
-              Location Access Required
-            </h3>
-            <p className='text-sm text-gray-600 mb-4 leading-relaxed'>
-              We need your location to show nearby gas sellers. Please enable
-              location services and refresh the page.
-            </p>
-            <div className='space-y-2'>
-              <button
-                onClick={() => window.location.reload()}
-                className='w-full bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors'
-              >
-                Refresh Page
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (permissionState === "prompt") {
-      return (
-        <div className='h-full bg-gradient-to-br from-blue-50 via-white to-orange-50 flex flex-col items-center justify-center p-6'>
-          <div className='text-center space-y-4 max-w-sm'>
-            <div className='text-6xl mb-4'>🗺️</div>
-            <h3 className='text-lg font-semibold text-gray-700 mb-2'>
-              Allow Location Access
-            </h3>
-            <p className='text-sm text-gray-600 mb-4 leading-relaxed'>
-              We need your location to find the best gas sellers near you.
-            </p>
-            <button
-              onClick={requestPermission}
-              className='w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors'
-            >
-              Allow Location Access
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    // Standard loading state
-    return (
-      <div className='h-full bg-gradient-to-br from-blue-50 via-white to-orange-50 flex flex-col items-center justify-center'>
-        <div className='text-center space-y-4'>
-          <div className='relative'>
-            <Loader2 className='h-12 w-12 animate-spin text-orange-500 mx-auto' />
-            <div className='absolute inset-0 h-12 w-12 border-4 border-orange-200 rounded-full animate-pulse'></div>
-          </div>
-          <div>
-            <h3 className='text-lg font-semibold text-gray-700 mb-1'>
-              {locationLoading ? "Getting your location..." : "Loading map..."}
-            </h3>
-            <p className='text-sm text-gray-500'>
-              {locationLoading
-                ? "Please allow location access for better results"
-                : "Preparing your gas delivery map"}
-            </p>
-            {error && (
-              <p className='text-xs text-red-600 mt-2 max-w-xs'>{error}</p>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Render no sellers found
-  if (!loading && sellers.length === 0) {
+  if (!loading && userLocation && sellers.length === 0) {
     return (
       <div className='flex flex-col items-center justify-center h-full bg-gradient-to-br from-gray-50 to-orange-50 text-center px-6'>
         <div className='bg-white rounded-3xl p-8 shadow-lg max-w-sm'>

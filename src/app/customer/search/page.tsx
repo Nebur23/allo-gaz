@@ -56,6 +56,8 @@ export default function Home() {
   );
 
   const {
+    setState,
+    error,
     location: userLocation,
     loading: locationLoading,
     permissionState,
@@ -86,7 +88,7 @@ export default function Home() {
   const renderLocationPermissionUI = () => {
     if (locationLoading) {
       return (
-        <div className='absolute top-0 left-0 right-0 z-50 bg-blue-50 border-b border-blue-200 p-3'>
+        <div className='absolute top-0 left-0 right-0 z-[100] bg-blue-50 border-b border-blue-200 p-3'>
           <div className='flex items-center justify-center gap-2 text-blue-700'>
             <Loader2 className='h-4 w-4 animate-spin' />
             <span className='text-sm'>Getting your location...</span>
@@ -185,11 +187,7 @@ export default function Home() {
 
   const handleSearch = useCallback((brand: string, size: string) => {
     setFilters({ brand, size });
-    //setIsMapLoading(true);
     setSelectedSeller(null);
-    //setRouteCoords([]);
-    // Simulate loading time - in real app this would be handled by map component
-    //setTimeout(() => setIsMapLoading(false), 500);
   }, []);
 
   const resetView = useCallback(() => {
@@ -248,7 +246,13 @@ export default function Home() {
       <SearchBar onSearch={handleSearch} onReset={handleReset} />
 
       <div className='flex-1 relative overflow-hidden'>
-        <MapSearch filters={filters} onSellerSelect={handleSellerSelect} />
+        <MapSearch
+          filters={filters}
+          onSellerSelect={handleSellerSelect}
+          userLocation={userLocation as [number, number]}
+          setState={setState}
+          error={error}
+        />
 
         <div className='absolute bottom-6 left-1/2 transform -translate-x-1/2 z-40 flex gap-2'>
           <button
