@@ -86,7 +86,7 @@ export default function Home() {
   }, [permissionState, requestPermission]);
 
   const renderLocationPermissionUI = () => {
-    if (locationLoading) {
+    if (!locationLoading) {
       return (
         <div className='absolute top-0 left-0 right-0 z-[100] bg-blue-50 border-b border-blue-200 p-3'>
           <div className='flex items-center justify-center gap-2 text-blue-700'>
@@ -99,7 +99,7 @@ export default function Home() {
 
     if (permissionState === "denied") {
       return (
-        <div className='absolute top-0 left-0 right-0 z-50 bg-red-50 border-b border-red-200 p-3'>
+        <div className='absolute top-0 left-0 right-0 z-[100] bg-red-50 border-b border-red-200 p-3'>
           <div className='text-center'>
             <p className='text-sm text-red-700 mb-2'>
               Location access is required to find nearby gas sellers
