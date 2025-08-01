@@ -237,7 +237,7 @@ export default function Home() {
           error={error}
         />
 
-        <div className='absolute bottom-6 left-1/2 transform -translate-x-1/2 z-40 flex gap-2'>
+        <div className='absolute z-[60] bottom-6 left-1/2 transform -translate-x-1/2  flex gap-2'>
           <button
             onClick={() =>
               setListViewMode(listViewMode === "minimal" ? "half" : "minimal")
@@ -292,7 +292,7 @@ export default function Home() {
       {listViewMode !== "minimal" && (
         <div
           {...handlers}
-          className={`bg-white rounded-t-3xl shadow-2xl border-t border-gray-100 ${getListHeight()} transform transition-all duration-300 ease-out`}
+          className={`bg-white z-[60] rounded-t-3xl shadow-2xl border-t border-gray-100 ${getListHeight()} transform transition-all duration-300 ease-out`}
           style={{
             boxShadow:
               "0 -10px 25px -3px rgba(0, 0, 0, 0.1), 0 -4px 6px -2px rgba(0, 0, 0, 0.05)",
