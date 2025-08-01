@@ -76,6 +76,7 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --safe-height: 100dvh;
 }
 
 .dark {
@@ -118,6 +119,13 @@
   }
   body {
     @apply bg-background text-foreground;
+    overscroll-behavior-y: contain;
+    touch-action: manipulation;
+  }
+
+  html {
+    overscroll-behavior-y: contain;
+    touch-action: manipulation;
   }
 }
 
@@ -134,7 +142,6 @@
 .animate-bounce-slow {
   animation: bounce-slow 2s infinite;
 }
-
 
 /* Enhanced AlloGaz PWA Styles */
 
@@ -204,7 +211,7 @@
 }
 
 .pulse-ring::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -4px;
   border-radius: 50%;
@@ -269,13 +276,18 @@
 }
 
 .seller-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(249, 115, 22, 0.1),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -319,7 +331,7 @@
 }
 
 .user-location-marker::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: -8px;
   border-radius: 50%;
@@ -397,8 +409,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Button enhancements */
@@ -412,7 +428,7 @@
 }
 
 .btn-primary::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, #ea580c, #c2410c);
@@ -489,7 +505,7 @@
 }
 
 .search-container::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, #f97316, #ea580c);
@@ -542,11 +558,11 @@
   .fab {
     bottom: 80px; /* Account for bottom sheet */
   }
-  
+
   .seller-card {
     margin: 0 -4px; /* Extend to edges on mobile */
   }
-  
+
   .map-control {
     padding: 6px;
   }
@@ -558,17 +574,17 @@
     background: rgba(17, 24, 39, 0.95);
     border-color: rgba(255, 255, 255, 0.1);
   }
-  
+
   .bottom-sheet {
     background: linear-gradient(to bottom, #1f2937, #111827);
     border-top-color: rgba(255, 255, 255, 0.1);
   }
-  
+
   .map-control {
     background: rgba(17, 24, 39, 0.95);
     border-color: rgba(255, 255, 255, 0.1);
   }
-  
+
   .skeleton {
     background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
   }
@@ -612,7 +628,7 @@
   .seller-card {
     border: 2px solid;
   }
-  
+
   .btn-primary {
     border: 2px solid #000;
   }

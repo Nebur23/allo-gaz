@@ -55,7 +55,83 @@ export default function Home() {
     "half"
   );
 
-  const location = useGeolocation().location as [number, number] | null;
+  const {
+    location,
+    loading: locationLoading,
+    permissionState,
+    requestPermission,
+  } = useGeolocation({
+    requestPermissionOnMount: false, // Don't auto-request on mobile
+  });
+
+
+  // Handle location permission states
+  const handleLocationPermission = useCallback(async () => {
+    if (permissionState === "denied") {
+      // Show user how to enable location
+      return;
+    }
+
+    if (permissionState === "prompt") {
+      const granted = await requestPermission();
+      if (!granted) {
+        // Handle permission denied
+        console.log("Location permission denied");
+      }
+    }
+  }, [permissionState, requestPermission]);
+
+  // Add location permission UI before the SearchBar component
+  const renderLocationPermissionUI = () => {
+    if (locationLoading) {
+      return (
+        <div className='absolute top-0 left-0 right-0 z-50 bg-blue-50 border-b border-blue-200 p-3'>
+          <div className='flex items-center justify-center gap-2 text-blue-700'>
+            <Loader2 className='h-4 w-4 animate-spin' />
+            <span className='text-sm'>Getting your location...</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (permissionState === "denied") {
+      return (
+        <div className='absolute top-0 left-0 right-0 z-50 bg-red-50 border-b border-red-200 p-3'>
+          <div className='text-center'>
+            <p className='text-sm text-red-700 mb-2'>
+              Location access is required to find nearby gas sellers
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className='text-xs bg-red-600 text-white px-3 py-1 rounded-full hover:bg-red-700'
+            >
+              Enable Location & Refresh
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (permissionState === "prompt") {
+      return (
+        <div className='absolute top-0 left-0 right-0 z-50 bg-orange-50 border-b border-orange-200 p-3'>
+          <div className='text-center'>
+            <p className='text-sm text-orange-700 mb-2'>
+              Allow location access to find gas sellers near you
+            </p>
+            <button
+              onClick={handleLocationPermission}
+              className='text-xs bg-orange-600 text-white px-3 py-1 rounded-full hover:bg-orange-700'
+            >
+              Allow Location Access
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   const deg2rad = useCallback((deg: number) => deg * (Math.PI / 180), []);
 
@@ -96,8 +172,6 @@ export default function Home() {
       }))
       .sort((a, b) => a.distance - b.distance);
   }, [filters, calculateDistance, location]);
-
-  console.log("Filtered sellers:", filteredSellers);
 
   // Handle seller selection from map with useCallback for performance
   const handleSellerSelect = useCallback(
@@ -163,7 +237,17 @@ export default function Home() {
   };
 
   return (
-    <div className='flex flex-col h-screen bg-gray-50 overflow-hidden'>
+    <div
+      className='flex flex-col overflow-hidden'
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        paddingLeft: "env(safe-area-inset-left)",
+        paddingRight: "env(safe-area-inset-right)",
+        height: "100dvh",
+      }}
+    >
+      {renderLocationPermissionUI()}
       <SearchBar onSearch={handleSearch} onReset={handleReset} />
 
       <div className='flex-1 relative overflow-hidden'>

@@ -145,11 +145,15 @@ export default function MapSearch({ filters, onSellerSelect }: MapSearchProps) {
     loading: locationLoading,
     location: userLocation,
     error,
+    permissionState,
+    requestPermission,
+    isSecureContext,
     setState,
   } = useGeolocation({
     enableHighAccuracy: true,
-    timeout: 15000, // 15 seconds
-    maximumAge: 300000, // 5 minutes
+    timeout: 30000, // Increased for mobile
+    maximumAge: 300000,
+    requestPermissionOnMount: true, // Auto-request in map component
   });
 
   // Memoized custom icons
@@ -285,11 +289,24 @@ export default function MapSearch({ filters, onSellerSelect }: MapSearchProps) {
         if (onSellerSelect && selectedSeller) {
           onSellerSelect(selectedSeller, decoded);
         }
-      } catch (err) {
-        if (axios.isCancel(err)) return; // Ignore cancelled requests
+      } catch (error: unknown) {
+        if (axios.isCancel(error)) return; // Ignore cancelled requests
 
-        console.error("Route fetch error:", err);
-        setState({ error: "Failed to load route. Please try again." });
+        console.error("Route fetch error:", error);
+
+        // More specific error messages for mobile
+        let errorMessage = "Failed to load route. Please try again.";
+        if (axios.isAxiosError(error)) {
+          if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+            errorMessage =
+              "Route calculation timed out. Please check your internet connection.";
+          } else if (error.response?.status === 403) {
+            errorMessage = "Route service unavailable. Please try again later.";
+          }
+        }
+
+        setState({ error: errorMessage });
+        toast.error(errorMessage); // Show toast notification
 
         setRouteCoords([]);
         setRouteInfo(null);
@@ -359,7 +376,63 @@ export default function MapSearch({ filters, onSellerSelect }: MapSearchProps) {
   }, []);
 
   // Render loading state
+
+  // Render loading state with better mobile support
   if (loading || locationLoading || !userLocation) {
+    // Handle permission states
+    if (permissionState === "denied") {
+      return (
+        <div className='h-full bg-gradient-to-br from-red-50 via-white to-orange-50 flex flex-col items-center justify-center p-6'>
+          <div className='text-center space-y-4 max-w-sm'>
+            <div className='text-6xl mb-4'>📍</div>
+            <h3 className='text-lg font-semibold text-gray-700 mb-2'>
+              Location Access Required
+            </h3>
+            <p className='text-sm text-gray-600 mb-4 leading-relaxed'>
+              We need your location to show nearby gas sellers. Please enable
+              location services and refresh the page.
+            </p>
+            <div className='space-y-2'>
+              <button
+                onClick={() => window.location.reload()}
+                className='w-full bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors'
+              >
+                Refresh Page
+              </button>
+              {!isSecureContext && (
+                <p className='text-xs text-red-600'>
+                  Note: Location requires HTTPS or localhost
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (permissionState === "prompt") {
+      return (
+        <div className='h-full bg-gradient-to-br from-blue-50 via-white to-orange-50 flex flex-col items-center justify-center p-6'>
+          <div className='text-center space-y-4 max-w-sm'>
+            <div className='text-6xl mb-4'>🗺️</div>
+            <h3 className='text-lg font-semibold text-gray-700 mb-2'>
+              Allow Location Access
+            </h3>
+            <p className='text-sm text-gray-600 mb-4 leading-relaxed'>
+              We need your location to find the best gas sellers near you.
+            </p>
+            <button
+              onClick={requestPermission}
+              className='w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors'
+            >
+              Allow Location Access
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Standard loading state
     return (
       <div className='h-full bg-gradient-to-br from-blue-50 via-white to-orange-50 flex flex-col items-center justify-center'>
         <div className='text-center space-y-4'>
@@ -376,6 +449,9 @@ export default function MapSearch({ filters, onSellerSelect }: MapSearchProps) {
                 ? "Please allow location access for better results"
                 : "Preparing your gas delivery map"}
             </p>
+            {error && (
+              <p className='text-xs text-red-600 mt-2 max-w-xs'>{error}</p>
+            )}
           </div>
         </div>
       </div>
