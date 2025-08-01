@@ -147,7 +147,6 @@ export default function MapSearch({ filters, onSellerSelect }: MapSearchProps) {
     error,
     permissionState,
     requestPermission,
-    isSecureContext,
     setState,
   } = useGeolocation({
     enableHighAccuracy: true,
@@ -297,7 +296,10 @@ export default function MapSearch({ filters, onSellerSelect }: MapSearchProps) {
         // More specific error messages for mobile
         let errorMessage = "Failed to load route. Please try again.";
         if (axios.isAxiosError(error)) {
-          if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+          if (
+            error.code === "ECONNABORTED" ||
+            error.message.includes("timeout")
+          ) {
             errorMessage =
               "Route calculation timed out. Please check your internet connection.";
           } else if (error.response?.status === 403) {
@@ -399,11 +401,6 @@ export default function MapSearch({ filters, onSellerSelect }: MapSearchProps) {
               >
                 Refresh Page
               </button>
-              {!isSecureContext && (
-                <p className='text-xs text-red-600'>
-                  Note: Location requires HTTPS or localhost
-                </p>
-              )}
             </div>
           </div>
         </div>

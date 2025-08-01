@@ -56,14 +56,16 @@ export default function Home() {
   );
 
   const {
-    location,
+    location: userLocation,
     loading: locationLoading,
     permissionState,
     requestPermission,
   } = useGeolocation({
-    requestPermissionOnMount: false, // Don't auto-request on mobile
+    enableHighAccuracy: true,
+    timeout: 30000, // Increased for mobile
+    maximumAge: 300000,
+    requestPermissionOnMount: true, // Auto-request in map component
   });
-
 
   // Handle location permission states
   const handleLocationPermission = useCallback(async () => {
@@ -81,7 +83,6 @@ export default function Home() {
     }
   }, [permissionState, requestPermission]);
 
-  // Add location permission UI before the SearchBar component
   const renderLocationPermissionUI = () => {
     if (locationLoading) {
       return (
@@ -154,25 +155,21 @@ export default function Home() {
   );
 
   // Memoized filtered sellers for better performance
-
   const filteredSellers = useMemo(() => {
-    if (!location) return [];
-    return mockSellers
-      .filter(
-        seller =>
-          seller.brand.toLowerCase().includes(filters.brand.toLowerCase()) &&
-          seller.size.toLowerCase().includes(filters.size.toLowerCase())
-      )
-      .map(seller => ({
-        ...seller,
-        distance: calculateDistance(location as [number, number], [
-          seller.latitude,
-          seller.longitude,
-        ]),
-      }))
-      .sort((a, b) => a.distance - b.distance);
-  }, [filters, calculateDistance, location]);
+    if (!userLocation) return [];
 
+    const filtered = mockSellers.filter(
+      seller =>
+        seller.brand.toLowerCase().includes(filters.brand.toLowerCase()) &&
+        seller.size.toLowerCase().includes(filters.size.toLowerCase())
+    );
+
+    return filtered.sort((a, b) => {
+      const distA = calculateDistance(userLocation, [a.latitude, a.longitude]);
+      const distB = calculateDistance(userLocation, [b.latitude, b.longitude]);
+      return distA - distB;
+    });
+  }, [filters, userLocation, calculateDistance]);
   // Handle seller selection from map with useCallback for performance
   const handleSellerSelect = useCallback(
     (seller: Seller, routeCoords: [number, number][]) => {
@@ -276,7 +273,7 @@ export default function Home() {
 
         {/* Route info overlay */}
         {selectedSeller && (
-          <div className='absolute top-4 left-4 right-4 z-40'>
+          <div className='absolute top-1/4 md:w-1/2 mx-auto left-4 right-4 z-40'>
             <Card className='bg-white/95 backdrop-blur-sm border-0 shadow-lg'>
               <CardContent className='p-3'>
                 <div className='flex items-center justify-between'>

@@ -49,16 +49,17 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
 
   // Check if we're in a secure context (required for geolocation)
   const isSecureContext = useCallback(() => {
+    if (typeof window === "undefined") return false; // SSR safety
     return (
       window.isSecureContext ||
-      location.protocol === "https:" ||
-      location.hostname === "localhost"
+      window.location.protocol === "https:" ||
+      window.location.hostname === "localhost"
     );
   }, []);
 
   // Check permission status
   const checkPermissionStatus = useCallback(async () => {
-    if (!navigator.permissions) {
+    if (typeof window === "undefined" || !navigator.permissions) {
       return "unknown";
     }
 
@@ -76,7 +77,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
 
   // Request permission explicitly (important for mobile)
   const requestPermission = useCallback(async () => {
-    if (!navigator.geolocation) {
+    if (typeof window === "undefined" || !navigator.geolocation) {
       setState(prev => ({
         ...prev,
         error: "Geolocation not supported by this browser",
@@ -123,7 +124,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
   const getCurrentLocation = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
-    if (!navigator.geolocation) {
+    if (typeof window === "undefined" || !navigator.geolocation) {
       setState({
         location: fallbackLocationRef.current,
         loading: false,
@@ -205,7 +206,12 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
   }, [isSecureContext, checkPermissionStatus]);
 
   const watchLocation = useCallback(() => {
-    if (!navigator.geolocation || watchIdRef.current !== null) return;
+    if (
+      typeof window === "undefined" ||
+      !navigator.geolocation ||
+      watchIdRef.current !== null
+    )
+      return;
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       position => {
@@ -227,14 +233,17 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
   }, []);
 
   const clearWatch = useCallback(() => {
-    if (watchIdRef.current !== null) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
+    if (typeof window === "undefined" || watchIdRef.current === null) return;
+
+    navigator.geolocation.clearWatch(watchIdRef.current);
+    watchIdRef.current = null;
   }, []);
 
   // Initialize geolocation on mount
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === "undefined") return;
+
     const initializeGeolocation = async () => {
       if (!hasRequestedPermission.current && requestPermissionOnMount) {
         hasRequestedPermission.current = true;
