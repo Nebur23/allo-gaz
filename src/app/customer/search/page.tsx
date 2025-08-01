@@ -97,6 +97,8 @@ export default function Home() {
       .sort((a, b) => a.distance - b.distance);
   }, [filters, calculateDistance, location]);
 
+  console.log("Filtered sellers:", filteredSellers);
+
   // Handle seller selection from map with useCallback for performance
   const handleSellerSelect = useCallback(
     (seller: Seller, routeCoords: [number, number][]) => {
