@@ -381,7 +381,7 @@ export function SearchBar({
           {/* Reset All Button */}
           <button
             onClick={handleReset}
-            className='flex items-center gap-1 text-gray-500 hover:text-gray-700 px-3 py-2 rounded-full hover:bg-gray-100 transition-colors text-sm'
+            className='flex items-center gap-1 text-gray-500 hover:text-gray-700 px-3 py-2 rounded-full bg-gray-100 transition-colors text-sm'
           >
             <RefreshCw className='h-3 w-3' />
             Clear all
