@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { useMemo } from "react";
 import { Seller } from "@/lib/sellers";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useTranslations } from "next-intl";
 
 type Props = {
   seller: Seller;
@@ -29,6 +30,8 @@ export function SellerCard({
   userLocation,
   onClick,
 }: Props) {
+  const t = useTranslations("Home.SellerCard");
+
   const isOpen = useMemo(() => {
     if (!seller.openHours) return true;
     const now = new Date();
@@ -58,14 +61,14 @@ export function SellerCard({
 
   return (
     <Card
-      className={`overflow-hidden md:mx-5 cursor-pointer transition-all duration-200 hover:shadow-md border-0 ${
+      className={`overflow-hidden border cursor-pointer transition-all duration-200 hover:shadow-md  ${
         isSelected
           ? "ring-2 ring-orange-400 shadow-lg transform scale-[1.01]"
           : ""
       }`}
       onClick={onClick}
     >
-      <div className='flex gap-3 p-3'>
+      <div className='flex gap-4 md:gap-3 p-3 flex-wrap'>
         {/* Image */}
         <div className='relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden'>
           <Image
@@ -77,7 +80,7 @@ export function SellerCard({
         </div>
 
         {/* Info */}
-        <div className='flex-1 min-w-0'>
+        <div className='sm:flex-1 min-w-0'>
           <div className='flex items-start justify-between'>
             <h3 className='font-semibold text-gray-800 text-sm line-clamp-1'>
               {seller.shopName}
@@ -91,17 +94,17 @@ export function SellerCard({
           <div className='flex gap-1 mt-1'>
             {seller.reviewCount > 100 && (
               <span className='bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full font-medium'>
-                🔥 Popular
+                🔥 {t("popular")}
               </span>
             )}
             {seller.deliveryTime && seller.deliveryTime < 30 && (
               <span className='bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium'>
-                🚀 Fast Delivery
+                🚀 {t("fastDelivery")}
               </span>
             )}
             {seller.discount && (
               <span className='bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-medium'>
-                💰 {seller.discount}% Off
+                💰 {seller.discount}% {t("off")}
               </span>
             )}
           </div>
@@ -138,7 +141,7 @@ export function SellerCard({
               {seller.price} XAF
             </span>
             <span className='text-xs text-gray-500'>
-              {seller.size === "small" ? "6kg" : "12kg"} bottle
+              {seller.size === "small" ? "6kg" : "12kg"} {t("bottle")}
             </span>
           </div>
 
@@ -156,14 +159,14 @@ export function SellerCard({
                     : "bg-red-100 text-red-700"
                 }`}
               >
-                {isOpen ? "Open" : "Closed"}
+                {isOpen ? t("open") : t("closed")}
               </span>
             </div>
           )}
         </div>
 
         {/* Action Buttons */}
-        <div className='flex flex-col gap-1 ml-2'>
+        <div className='flex sm:flex-col gap-1'>
           <Button
             size='icon'
             variant={isFavorite(seller.id) ? "default" : "outline"}

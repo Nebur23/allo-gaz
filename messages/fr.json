@@ -1,0 +1,52 @@
+{
+  "Home": {
+    "title": "AlloGaz",
+    "subtitle": "Gas livré en quelques minutes",
+    "SearchBar": {
+      "search": "Rechercher une marque de gaz...",
+      "size": "Taille",
+      "brandSub": "Marque de station-service",
+      "allSizes": "Toutes les tailles",
+      "searchButton": "Rechercher",
+      "searchfor": " Rechercher pour",
+      "pressEnter": "Appuyez sur Entrée pour rechercher",
+      "noBrandsFound": "Aucune marque trouvée",
+      "trySearchingFor": "Essayez de rechercher",
+      "filterBySize": "Filtrer par taille",
+      "clearAll": "Tout effacer",
+      "reset": "Réinitialiser",
+      "tryAgain": "Essayez à nouveau",
+      "small": "Petit",
+      "big": "Grand"
+    },
+    "getLocation": "Obtention de votre position",
+    "deniedLocation": "L'accès à la localisation est nécessaire pour trouver des vendeurs de gaz à proximité",
+    "enableLocation": "Activer la localisation et rafraîchir",
+    "propmtContent": "Autoriser l'accès à la localisation pour trouver des vendeurs de gaz près de chez vous",
+    "promptAllowBtn": "Autoriser l'accès à la localisation",
+    "nearby": "À proximité",
+    "favorites": "Favoris",
+    "nearbySellers": "Vendeurs à proximité",
+    "noFav": "Aucun favori pour l'instant",
+    "showSellers": "Afficher la liste",
+    "hideList": "Masquer la liste",
+    "SellerCard": {
+      "popular": "Populaire",
+      "fastDelivery": "Livraison rapide",
+      "off": "Réduction",
+      "bottle": "bouteille",
+      "open": "Ouvert",
+      "closed": "Fermé"
+    },
+    "MapSearch": {
+      "noSellers": "Aucun vendeur trouvé",
+      "weCouldntFind": "Nous n'avons trouvé aucune",
+      "gasBottlesIn": "bouteilles de gaz dans votre région en ce moment.",
+      "yourLocation": "Votre position",
+      "you": "Nous livrerons du gaz ici"
+    },
+    "InstallPWA": {
+      "installPrompt": "Installer AlloGaz"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "Home": {
+    "title": "AlloGaz",
+    "subtitle": "Gas delivered in minutes",
+    "SearchBar": {
+      "search": "Search gas brand (e.g Total, SCTM)...",
+      "size": "Size",
+      "brandSub": "Gas station brand",
+      "allSizes": "All Sizes",
+      "searchButton": "Search",
+      "searchfor": "Search for",
+      "pressEnter": "Press Enter to search",
+      "noBrandsFound": "No brands found",
+      "trySearchingFor": "Try searching for",
+      "filterBySize": "Filter by Size",
+      "clearAll": "Clear All",
+      "reset": "Reset",
+      "tryAgain": "Try again",
+      "small": "Small",
+      "big": "Big"
+    },
+    "getLocation": "Getting your location",
+    "deniedLocation": "Location access is required to find nearby gas sellers",
+    "enableLocation": "Enable Location & Refresh",
+    "propmtContent": "Allow location access to find gas sellers near you",
+    "promptAllowBtn": "Allow Location Access",
+    "nearby": "Nearby",
+    "favorites": "Favorites",
+    "nearbySellers": "Nearby Sellers",
+    "noFav": "No favorites yet",
+    "showSellers": "Show Sellers",
+      "hideList": "Hide List",
+    "SellerCard": {
+      "popular": "Popular",
+      "fastDelivery": "Fast Delivery",
+      "off": "Off",
+      "bottle": "bottle",
+      "open": "Open",
+      "closed": "Closed"
+      
+    },
+    "MapSearch": {
+      "noSellers": "No Sellers Found",
+      "weCouldntFind": "We couldn't find any",
+      "gasBottlesIn": "gas bottles in your area right now.",
+      "yourLocation": "Your Location",
+      "you": "We'll deliver gas here"
+    },
+    "InstallPWA": {
+      "installPrompt": "Install AlloGaz"
+    }
+  }
+}

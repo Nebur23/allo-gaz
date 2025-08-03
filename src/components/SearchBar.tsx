@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, X, ChevronDown, RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState, useRef, useEffect } from "react";
 
 const BRANDS = [
@@ -19,6 +20,7 @@ export function SearchBar({
   onSearch: (brand: string, size: string) => void;
   onReset: () => void;
 }) {
+  const t = useTranslations("Home.SearchBar");
   const [searchQuery, setSearchQuery] = useState("");
   const [size, setSize] = useState("");
   const [isAutocompleteOpen, setIsAutocompleteOpen] = useState(false);
@@ -199,7 +201,8 @@ export function SearchBar({
             <input
               ref={inputRef}
               type='text'
-              placeholder='Search gas stations (e.g. Total, SCTM)'
+              //placeholder='Search gas stations (e.g. Total, SCTM)'
+              placeholder={t("search")}
               value={searchQuery}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
@@ -244,7 +247,7 @@ export function SearchBar({
                         <div>
                           <div className='font-medium'>{brand}</div>
                           <div className='text-xs text-gray-500'>
-                            Gas station brand
+                            {t("brandSub")}
                           </div>
                         </div>
                       </div>
@@ -266,10 +269,10 @@ export function SearchBar({
                         <Search className='h-4 w-4 text-gray-400' />
                         <div>
                           <div className='font-medium'>
-                            Search for &quot;{searchQuery}&quot;
+                            {t("searchfor")} &quot;{searchQuery}&quot;
                           </div>
                           <div className='text-xs text-gray-500'>
-                            Press Enter to search
+                            {t("pressEnter")}
                           </div>
                         </div>
                       </div>
@@ -279,9 +282,9 @@ export function SearchBar({
               ) : (
                 <div className='px-4 py-6 text-center text-gray-500'>
                   <Search className='h-8 w-8 mx-auto mb-2 text-gray-300' />
-                  <div className='text-sm'>No brands found</div>
+                  <div className='text-sm'>{t("noBrandsFound")} </div>
                   <div className='text-xs text-gray-400 mt-1'>
-                    Try searching for &quot;{searchQuery}&quot;
+                    {t("trySearchingFor")} &quot;{searchQuery}&quot;
                   </div>
                 </div>
               )}
@@ -300,11 +303,15 @@ export function SearchBar({
                 className='w-full flex items-center justify-between text-left'
               >
                 <span className='text-gray-600 text-sm font-medium'>
-                  Filter by size
+                  {t("filterBySize")}
                 </span>
                 <div className='flex items-center gap-2'>
                   <span className='text-gray-800 font-medium text-sm'>
-                    {size ? (size === "small" ? "Small" : "Big") : "All Sizes"}
+                    {size
+                      ? size === "small"
+                        ? t("small")
+                        : t("big")
+                      : t("allSizes")}
                   </span>
                   <ChevronDown
                     className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
@@ -335,10 +342,10 @@ export function SearchBar({
                   <div className='flex items-center justify-between'>
                     <span className='font-medium'>
                       {sizeOption === ""
-                        ? "All Sizes"
+                        ? t("allSizes")
                         : sizeOption === "small"
-                        ? "Small"
-                        : "Big"}
+                        ? t("small")
+                        : t("big")}
                     </span>
                     {size === sizeOption && (
                       <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
@@ -368,7 +375,9 @@ export function SearchBar({
           )}
           {size && (
             <div className='flex items-center gap-2 bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium shadow-sm border border-blue-200'>
-              <span>{size === "small" ? "Small" : "Big"} Size</span>
+              <span>
+                {size === "small" ? "Small" : "Big"} {t("size")}
+              </span>
               <button
                 onClick={clearSize}
                 className='hover:bg-blue-200 rounded-full p-1 transition-colors'
@@ -384,7 +393,7 @@ export function SearchBar({
             className='flex items-center gap-1 text-gray-500 hover:text-gray-700 px-3 py-2 rounded-full bg-gray-100 transition-colors text-sm'
           >
             <RefreshCw className='h-3 w-3' />
-            Clear all
+            {t("clearAll")}
           </button>
         </div>
       )}

@@ -13,6 +13,8 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { SellerCardSkeleton } from "@/components/skeleton/seller";
 import { SellerCard } from "@/components/SellerCard";
 import { useFavorites } from "@/hooks/useFavorites";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslations } from "next-intl";
 
 // Optimized dynamic import with better loading state
 const MapSearch = dynamic(() => import("@/components/MapSearch"), {
@@ -28,6 +30,7 @@ const MapSearch = dynamic(() => import("@/components/MapSearch"), {
 });
 
 export default function Home() {
+  const t = useTranslations("Home");
   const [filters, setFilters] = useState({ brand: "", size: "" });
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
   const [activeTab, setActiveTab] = useState<"nearby" | "favorites">("nearby");
@@ -74,7 +77,7 @@ export default function Home() {
         <div className='absolute top-0 left-0 right-0 z-[100] bg-blue-50 border-b border-blue-200 p-3'>
           <div className='flex items-center justify-center gap-2 text-blue-700'>
             <Loader2 className='h-4 w-4 animate-spin' />
-            <span className='text-sm'>Getting your location...</span>
+            <span className='text-sm'>{t("getLocation")}...</span>
           </div>
         </div>
       );
@@ -84,14 +87,12 @@ export default function Home() {
       return (
         <div className='absolute top-0 left-0 right-0 z-[100] bg-red-50 border-b border-red-200 p-3'>
           <div className='text-center'>
-            <p className='text-sm text-red-700 mb-2'>
-              Location access is required to find nearby gas sellers
-            </p>
+            <p className='text-sm text-red-700 mb-2'>{t("deniedLocation")} </p>
             <button
               onClick={() => window.location.reload()}
               className='text-xs bg-red-600 text-white px-3 py-1 rounded-full hover:bg-red-700'
             >
-              Enable Location & Refresh
+              {t("enableLocation")}{" "}
             </button>
           </div>
         </div>
@@ -102,14 +103,12 @@ export default function Home() {
       return (
         <div className='absolute top-0 left-0 right-0 z-[100] bg-orange-50 border-b border-orange-200 p-3'>
           <div className='text-center'>
-            <p className='text-sm text-orange-700 mb-2'>
-              Allow location access to find gas sellers near you
-            </p>
+            <p className='text-sm text-orange-700 mb-2'>{t("propmtContent")}</p>
             <button
               onClick={handleLocationPermission}
               className='text-xs bg-orange-600 text-white px-3 py-1 rounded-full hover:bg-orange-700'
             >
-              Allow Location Access
+              {t("promptAllowBtn")}
             </button>
           </div>
         </div>
@@ -225,6 +224,7 @@ export default function Home() {
         height: "100dvh",
       }}
     >
+      <LanguageSwitcher />
       {renderLocationPermissionUI()}
       <SearchBar onSearch={handleSearch} onReset={handleReset} />
 
@@ -245,7 +245,7 @@ export default function Home() {
             className='px-6 py-3 bg-white shadow-lg rounded-full text-gray-700 font-medium text-sm flex items-center gap-2 hover:shadow-xl transition-all duration-200 backdrop-blur-sm border border-gray-100'
           >
             <Navigation className='h-4 w-4' />
-            {listViewMode === "minimal" ? "Show Sellers" : "Hide List"}
+            {listViewMode === "minimal" ? t("showSellers") : t("hideList")}
           </button>
 
           {selectedSeller && (
@@ -311,7 +311,7 @@ export default function Home() {
                 onClick={() => setActiveTab("nearby")}
                 className='rounded-full text-xs px-3'
               >
-                Nearby
+                {t("nearby")} ({filteredSellers.length})
               </Button>
               <Button
                 variant={activeTab === "favorites" ? "default" : "outline"}
@@ -319,7 +319,7 @@ export default function Home() {
                 onClick={() => setActiveTab("favorites")}
                 className='rounded-full text-xs px-3'
               >
-                Favorites ({favorites.length})
+                {t("favorites")} ({favorites.length})
               </Button>
             </div>
           </div>
@@ -329,7 +329,7 @@ export default function Home() {
               <div className='px-4 pb-2 border-b border-gray-100'>
                 <div className='flex items-center justify-between'>
                   <h2 className='text-lg font-semibold text-gray-800'>
-                    Nearby Sellers ({filteredSellers.length})
+                    {t("nearbySellers")} ({filteredSellers.length})
                   </h2>
                   <div className='flex gap-1'>
                     <button
@@ -356,7 +356,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <ScrollArea className='flex-1 px-4 h-full'>
+              <ScrollArea className='flex-1 px-2 sm:px-3 md:px-4 h-full'>
                 <div className='space-y-3 py-4'>
                   {filteredSellers.length === 0
                     ? // Loading skeletons
@@ -384,7 +384,7 @@ export default function Home() {
             <div className='space-y-3 py-4'>
               {favoriteSellers.length === 0 ? (
                 <p className='text-center text-gray-500 text-sm p-4'>
-                  No favorites yet
+                  {t("noFav")}
                 </p>
               ) : (
                 favoriteSellers.map(seller => (

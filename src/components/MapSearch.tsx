@@ -27,6 +27,7 @@ import {
 import { mockSellers, Seller } from "@/lib/sellers";
 import { GeolocationState } from "@/hooks/useGeolocation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface IconDefault extends L.Icon.Default {
   _getIconUrl?: () => string;
@@ -136,6 +137,8 @@ export default function MapSearch({
   setState,
   error,
 }: MapSearchProps) {
+  const t = useTranslations("Home.MapSearch");
+
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
@@ -381,14 +384,14 @@ export default function MapSearch({
         <div className='bg-white rounded-3xl p-8 shadow-lg max-w-sm'>
           <div className='text-6xl mb-4'>🔍</div>
           <h3 className='text-xl font-semibold text-gray-800 mb-2'>
-            No Sellers Found
+            {t("noSellers")}
           </h3>
           <p className='text-sm text-gray-600 mb-4 leading-relaxed'>
-            We couldn&apos;t find any{" "}
+            {t("weCouldntFind")}
             <span className='font-semibold text-orange-600'>
               {filters.size} {filters.brand}
             </span>{" "}
-            gas bottles in your area right now.
+            {t("gasBottlesIn")}
           </p>
         </div>
       </div>
@@ -470,10 +473,10 @@ export default function MapSearch({
             <Popup>
               <div className='text-center p-2'>
                 <div className='text-blue-600 mb-2'>📍</div>
-                <p className='font-semibold text-gray-800'>Your Location</p>
-                <p className='text-xs text-gray-600'>
-                  We&apos;ll deliver gas here
+                <p className='font-semibold text-gray-800'>
+                  {t("yourLocation")}{" "}
                 </p>
+                <p className='text-xs text-gray-600'>{t("you")}</p>
               </div>
             </Popup>
           </Marker>

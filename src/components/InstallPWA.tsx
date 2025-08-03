@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -14,6 +15,8 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function InstallPWA() {
+  const t = useTranslations("Home.InstallPWA");
+
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
@@ -48,7 +51,7 @@ export function InstallPWA() {
         className='animate-bounce-slow'
         onClick={installApp}
       >
-        Install AlloGaz
+        {t("installPWA")}
       </Button>
     </div>
   );
